@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =============================
+  智邦生活館 - 輕鬆架站 RSS 2.0
+  =============================
+  產生器資訊
+  應用程式: Foresight v0.3.2 RSS 2.0 Generator
+  更新日期: Mar 27 16:41 CST 2007
+-->
+<rss version="2.0">
+  <channel>
+    <!-- 公司名稱 -->
+    <title>昶然實業股份有限公司</title>
+    <!-- 公司黃頁網站 -->
+    <link>http://www.sanglang.com.tw/</link>
+    <!-- 公司簡介 -->
+    <description>
+
+最專業的各式包裝紙與薄紙買賣、印刷廠
+本公司成立至今已二十餘年來專心一致投入於各式薄紙印刷及買賣（拷貝紙、棉紙、格拉辛紙、彩蝶紙、布織布等…），摸起來觸感較一般之紙張更加有質感，作用除用於包裝保護各種用品外，並有防潮、吸水等作用。</description>
+    <!-- 文件語言 -->
+    <language></language>
+    <!-- 版權說明 -->
+    <copyright>智邦生活館 版權所有</copyright>
+    <!-- 管理工具 -->
+    <managingEditor>Foresight v0.3.2 RSS 2.0 Generator</managingEditor>
+    <!-- 管理者 -->
+    <webMaster>智邦生活館 網站代管</webMaster>
+    <!-- 出版日期 -->
+    <pubDate>Sun, 05 Oct 2014 20:27:03 CST</pubDate>
+    <!-- 最後製造日期 -->
+    <lastBuildDate>Sun, 05 Oct 2014 20:27:03 CST</lastBuildDate>
+    <!-- 產生器 -->
+    <generator>智邦生活館 版權所有</generator>
+    <!-- 存活時間, 這個頻道會被快取幾分鐘 -->
+    <ttl>10080</ttl>
+	 <!-- 分類列表 -->
+		<category>未分類</category>
+	    <!-- 每一個項目的內容 -->
+    
+  </channel>
+</rss>

@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-TW" lang="zh-TW"  >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>昶然實業股份有限公司</title> 
+<link type="text/css" href="skin/jquery-ui/jquery-ui-1.10.0.custom.min.css" rel="stylesheet" />
+<script type="text/javascript" src="scripts/jquery-1.9.0.js"></script>
+<script type="text/javascript" src="scripts/jquery-ui-1.10.0.custom.min.js"></script>
+<link rel="stylesheet" type="text/css" rev="stylesheet" media="all" href="skin/table.css?ver=1412512022" />
+<script type="text/javascript" src="scripts/twzipcode.min.js"></script>
+<script type="text/javascript" src="scripts/ui.datepicker-zh-TW.js"></script>
+<script type="text/javascript">
+<!--
+var shipping_price = 0;
+var shipping_price_1 = 0;
+var shipping_price_2 = 0;
+var shipping_price_3 = 0;
+var shipping_price_free = 0;
+// var shipping_type = 1;
+var deliver = "ALL";
+var deliver_day = "0";
+// 檢查數量, 重算價格
+function onChangeQty() {
+   var idx;
+   var tr,td;
+   var qty,isqty,price,subtotal;
+   var total = 0;
+   // 掃描 table 的每一列
+   tr = $("#sorder_products tbody tr");
+   for(idx=0;idx<tr.length;idx++) {
+      // 檢查這一列是不是商品
+      td = $("td",tr[idx]);
+      if(td.length==5) {
+         // 計算小計
+         isqty = false;
+         qty   = $("input:eq(1)",tr[idx]).val();
+         if(qty!=undefined) {
+            if(/[0-9]+/.test(qty)) { 
+               isqty    = true;
+               price    = $("td:eq(2)",tr[idx]).text();
+               subtotal = price*qty;
+               $("td:eq(4)",tr[idx]).text(subtotal);
+               total += subtotal;
+            }
+         }
+         if(!isqty) $("td:eq(4)",tr[idx]).html("&nbsp;");
+      }
+   } 
+   // 運費     
+   if(shipping_price_free> 0 &&  total>=shipping_price_free){
+    $("#shipping_price").text("0");
+   }else{
+    total += shipping_price;
+	 $("#shipping_price").text(shipping_price); 
+   }
+   // 總計
+   $("#total").text(total);
+}
+function setShippingPrice(type){ 
+	 $(".opt_addr").text('*');
+ if(type==1){
+   shipping_price  = shipping_price_1;
+   $("#shipping_price").text(shipping_price);
+   document.forms['sorder'].elements['cus_shipping_price'].value = shipping_price_1;
+ }else if(type==2){
+   shipping_price  = shipping_price_2;
+   $("#shipping_price").text(shipping_price);
+   document.forms['sorder'].elements['cus_shipping_price'].value = shipping_price_2;   
+ }else if(type==3){
+   shipping_price  = shipping_price_3;
+   $("#shipping_price").text(shipping_price);
+   document.forms['sorder'].elements['cus_shipping_price'].value = shipping_price_3;     
+	 	 $(".opt_addr").text('');
+ }
+}
+// 同上
+function copyToReceiver(chk) {
+   if(chk) {
+      f = document.forms['sorder'];
+      f.elements['rperson'].value = f.elements['operson'].value;
+      f.elements['rtel'].value = f.elements['otel'].value;
+      f.elements['rext'].value = f.elements['oext'].value;
+      f.elements['rmobile'].value = f.elements['omobile'].value;
+      f.elements["rmobile_foreign"].checked = f.elements["bmobile_foreign"].checked;
+   }
+}
+// 檢查欄位
+function checkFields() {  
+   var labels = {
+      email:   "Email",
+      operson: "訂購人",
+      otel:    "訂購人電話",
+      oext:    "訂購人分機",
+      omobile: "訂購人手機",
+      rperson: "收件人",
+      rtel:    "收件人電話",
+      rext:    "收件人分機",
+      rmobile: "收件人手機",
+      zipcode: "郵遞區號",
+      address: "地址"
+   };
+   var fmts = {
+      email:   /.+@.+/,
+      operson: /.+/,
+      otel:    /\d+/,
+      oext:    /\d*/,
+      omobile: /09\d{8}/,
+      rperson: /.+/,
+      rtel:    /\d+/,
+      rext:    /\d*/,
+      rmobile: /09\d{8}/,
+      zipcode: /\d{3}/,
+      address: /.+/
+   };
+ labels.splice(0, labels.length-2);
+ fmts.splice(0, labels.length-2);
+   var message = "";
+   var f = document.forms['sorder'];
+	 $('input').removeClass( 'warning_input' );
+	 if( f.elements["shippingtype"].value.substr(0,4)=='超商取貨' ){ 
+		delete labels.address;
+		delete fmts.address;
+	 }
+	 if( f.elements["rmobile_foreign"].checked ){ 
+		 fmts.rmobile = /^\d+$/;
+	 }
+	 if( f.elements["bmobile_foreign"].checked ){ 
+		 fmts.omobile = /^\d+$/;
+	 }	 
+   if(f.elements["istoday"]!=null && f.elements["istoday"].value=="N") {
+      v = f.elements["rdate"].value;
+      if(!/\d{4}-\d{2}-\d{2}/.test(v)) {
+         message += "到貨日期格式不正確\n";
+      }
+   }
+   for(k in fmts) {
+      v = f.elements[k].value;
+      if(!fmts[k].test(v)) {
+				$('input[name='+k+']').addClass( 'warning_input' ).keyup(function(){ $(this).removeClass('warning_input'); });
+         message += labels[k]+"格式不正確\n";
+      }
+   }
+   var total = parseInt($("#total").text()) - parseInt(($("#shipping_price").text()==="")?0:$("#shipping_price").text()) ; 
+   if(f.elements["receipt_serial"]!=null && f.elements["receipt_serial"].value!='' && idchk(f.elements["receipt_serial"].value)==false) message += "統一編號格式不正確\n";
+   if(total=="" || total<=0) message += "至少要買一項商品\n";
+	 if(total>2000 && $('input[name=shippingtype]:checked').val()=='超商取貨ATM付款') message += "超取ATM付款限制2000元內\n";
+   if(total>6000 && $('input[name=shippingtype]:checked').val()=='超商取貨付款') message += "超取付款限制6000元內\n";
+   if(message) alert(message);
+   return (message=="") ? confirm("確定要送出嗎") : false;
+}
+/*檢查統一編號*/
+function idchk(idvalue) {
+   var tmp = new String("12121241");
+   var sum = 0;
+   re = /^\d{8}$/;
+   if (!re.test(idvalue)) {
+       //return "格式不正確";
+       return false;
+    }
+   for (i=0; i< 8; i++) {
+     s1 = parseInt(idvalue.substr(i,1));
+     s2 = parseInt(tmp.substr(i,1));
+     sum += cal(s1*s2);
+   }
+   if (!valid(sum)) {
+      if (idvalue.substr(6,1)=="7") return(valid(sum+1));
+   }  
+   return(valid(sum));
+}
+function valid(n) {
+   return (n%10 == 0)?true:false;
+}
+function cal(n) {
+   var sum=0;
+   while (n!=0) {
+      sum += (n % 10);
+      n = (n - n%10) / 10;  // 取整數
+     }
+   return sum;
+}
+/*檢查統一編號*/
+$(document).ready(function() {
+try{
+   $("#addrbox").twzipcode({
+      countyName:    'county' ,
+      areaName:      'area'   ,
+      zipName:   'zipcode1',
+      countySel: '台北市' ,
+      areaSel:   '大安區'
+   });
+   }catch(e){
+		for (key in e)   {
+			  //alert(e[key]); // s += a[key] + "&ltBR>";
+			}
+   }
+   if(deliver=='LATER' || deliver=='ALL'){
+   $("#rdate").datepicker({
+      dateFormat: 'yy-mm-dd',
+      defaultDate: +1,
+			minDate: '+'+deliver_day
+   });
+   }
+	 $("#CoD").click();
+try{
+//取得舊資料
+var url = decodeURI(window.location.toString());
+var str = "";
+if(url.indexOf("?")!=-1){ //url裡有"?"符號
+  var ary=url.split("?")[1].split("&"); 
+  for(var i in ary){
+    //變數名稱 ary[i].split("=")[0]
+    //變數值 ary[i].split("=")[1]
+	inputname = ary[i].split("=")[0];
+	inputval = ary[i].split("=")[1];
+	if( inputname!='app' ){	
+		if(inputname=='shippingtype'||inputname=='istoday'){  // 處理radio  
+		 $('input[value="'+decodeURI(inputval.replace('%2F','/'))+'"]').trigger('click');		 
+		}else if(inputname=='bmobile_foreign'||inputname=='rmobile_foreign'){  // 處理checkbox 
+		 $('input[name="'+inputname+'"]').prop("checked", (inputval=='on') ? true : false ); 
+		}else if(inputname=='rtime' || inputname=='area' || inputname=='county' ){ // 處理select
+			$('select[name="'+inputname+'"] option[value="'+decodeURI(inputval)+'"]').trigger('click'); 
+		}else if(inputname=='remarks'){
+	    $('textarea[name="'+inputname+'"]').val(decodeURI(inputval).replace('%40','@'));
+		}else{
+			$('input[name="'+inputname+'"]').val(decodeURI(inputval).replace('%40','@')); 
+	  }
+	}
+  }
+} 
+onChangeQty();
+}catch(e){
+	 alert(e); 
+   }	  
+});
+-->
+</script> 
+</head> 
+<body>
+<form  action="http://hosting.url.com.tw/sorder/index.php/sorder/" method="POST" onsubmit="return checkFields();" name="sorder">
+<table id="sorder_products" width="100%" border="0" cellspacing="0" cellpadding="0" class="table_A1">
+   <tr>
+      <th colspan="5" scope="col">線上訂購單</th>
+   </tr>
+   <tr>
+      <th width="11%" scope="col">編號</th>
+      <th width="41%" scope="col">品名</th>
+      <th width="10%" scope="col">價格</th>
+      <th width="19%" scope="col">數量</th>
+      <th width="19%" scope="col">小計</th>
+   </tr>
+                                    <tr>
+      <td colspan="4" align="right">總計</td>
+      <td align="center"><span id="total">&nbsp;</span></td>
+   </tr>
+      <tr>
+      <td align="center">備註</td>
+      <td colspan="4" align="left"><textarea name="remarks" style="width: 99%; height: 80px;"></textarea></td>
+   </tr>
+</table>
+<input type="hidden" name="serverid" value="85685"/>
+<input type="hidden" name="pcount" value="0"/>
+<input type="hidden" name="cus_shipping_price" value="0"/>
+<table width="100%%" border="0" cellspacing="0" cellpadding="0"  class="table_A1">
+   <tr>
+      <th colspan="8" class="tdtitle" align="center">訂購人資料</th>
+   </tr>
+      <tr>
+      <td align="left">到貨時間：</td>
+      <td colspan="7" align="left">
+                  當日<input type="radio" name="istoday" value="Y" checked="checked"/>
+         <select name="rtime">
+            <option value="上午">上午</option>
+            <option value="中午">中午</option>
+            <option value="下午">下午</option>
+         </select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                           擇日<input type="radio" name="istoday" value="N"/>
+         <input type="text" id="rdate" name="rdate" value="" style="width:100px;"/>
+               </td>
+   </tr>
+      <tr>
+      <td align="left">付款方式</td>
+      <td align="left" colspan="7">
+			<input type="radio" name="shippingtype" id="CoD" onClick="setShippingPrice(1);onChangeQty();" value="貨到付款" checked />貨到付款 			 
+						</td>
+   </tr>
+   <tr>
+      <td align="left"><font color='red'>*</font>Email：</td>
+      <td align="left" colspan="7"><input type="text" name="email" value="" style="width:400px;"/></td>
+   </tr>
+   <tr>
+      <td width="13%" align="left"><font color='red'>*</font>訂購人：</td>
+      <td width="9%" align="left"><input type="text" name="operson" value="" style="width:80px;"/></td>
+      <td width="9%"><font color='red'>*</font>電話：</td>
+      <td width="30%" colspan="3">
+         <input type="text" name="otel" value="" class="num_only" style="width:45%;"/>
+				 分機：
+         <input type="text" name="oext" value="" class="num_only" style="width:30px;"/>
+      </td>
+      <td width="9%"><font color='red'>*</font>手機：</td>
+      <td width="30%"><input type="text" name="omobile" value="" class="num_only" style="width:45%;"/>
+			<input type="checkbox" name="bmobile_foreign" id="bmobile_foreign"/>非台灣地區</td>
+   </tr>
+   <tr>
+      <td align="left" colspan="8"><input type="checkbox" onclick="copyToReceiver(this.checked)"/>收件人同訂購人</td>
+   </tr>
+   <tr>
+      <td align="left"><font color='red'>*</font>收件人：</td>
+      <td align="left"><input type="text" name="rperson" value="" style="width:80px;"/></td>
+      <td><font color='red'>*</font>電話：</td>
+      <td colspan="3">
+         <input type="text" name="rtel" value="" class="num_only" style="width:45%;"/>
+         分機：
+         <input type="text" name="rext" value="" class="num_only" style="width:30px;"/>
+      </td>
+      <td><font color='red'>*</font>手機：</td>
+      <td><input type="text" name="rmobile" value="" class="num_only" style="width:45%;"/>
+			<input type="checkbox" name="rmobile_foreign" id="rmobile_foreign"/>非台灣地區</td>
+   </tr>
+   <tr>
+      <td align="left"><font color='red' class='opt_addr'>*</font>到貨地址：</td>
+      <td colspan="7" align="left">
+         <div id="addrbox">
+            <input type="hidden" id="zipcode" name="zipcode" style="width:30px;"/>
+            <input type="text" id="zip1" name="zipcode1" style="width:30px;"/>
+            <input type="text" id="zip2" name="zipcode2" style="ime-mode:disabled;width:20px;" class="num_only"   maxlength=2/>
+            <select id="county" name="county"></select>
+            <select id="area" name="area"></select>
+            <input type="text" name="address" value="" style="width:310px;"/>
+         </div>
+      </td>
+   </tr>
+      </table>
+<input type="submit" name="button" id="button" value="訂單送出"  onclick="$('#zipcode').val($('#zip1').val()+$('#zip2').val());" />
+</form>
+</body>  
+</html>
